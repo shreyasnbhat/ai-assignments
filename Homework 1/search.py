@@ -42,6 +42,9 @@ class PathFinder:
         else:
             return False
 
+    def cost2D(self, x, y, x_n, y_n):
+        pass
+
     def setPath(self, parent, x_n, y_n):
 
         path = list()
@@ -64,7 +67,7 @@ class PathFinder:
                 print(str(j[0]) + ',' + str(j[1]), end=' ')
             print()
 
-    def BFS(self):
+    def BreadthFirst(self):
         visited = [[False for i in range(self.w)] for j in range(self.h)]
         parent = [[[0, 0] for i in range(self.w)] for j in range(self.h)]
 
@@ -89,6 +92,12 @@ class PathFinder:
                     else:
                         q.append([x_n, y_n])
 
+    def UniformCost(self):
+        pass
+
+    def AStar(self):
+        pass
+
 
 if __name__ == '__main__':
     algorithm = input().strip()
@@ -107,5 +116,5 @@ if __name__ == '__main__':
         eM.append(list(map(int, input().strip().split(" "))))
 
     p = PathFinder(eM, targets, lx, ly, maxElevation)
-    p.BFS()
+    p.BreadthFirst()
     p.printTargetPaths()
