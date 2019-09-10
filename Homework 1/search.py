@@ -41,6 +41,7 @@ class PathFinder:
             return True
         else:
             return False
+        
 
     def cost2D(self, x, y, x_n, y_n):
         pass
