@@ -92,9 +92,6 @@ class PathFinder:
         self.ly = ly
         self.maxElevation = maxElevation
 
-    def goalTest(self, x, y):
-        return [x, y] in self.targets
-
     def legalMove(self, x, y):
         if 0 <= x < self.w and 0 <= y < self.h:
             return True
@@ -154,7 +151,7 @@ class PathFinder:
         f.close()
         self.targetPathMap = {}
 
-    def BreadthFirst(self):
+    def BreadthFirst(self, target):
         visited = [[False for i in range(self.w)] for j in range(self.h)]
         parent = [[[0, 0] for i in range(self.w)] for j in range(self.h)]
 
@@ -172,7 +169,7 @@ class PathFinder:
                 if not visited[y_n][x_n] and self.legalMove(x_n, y_n) and self.shouldMove(x, y, x_n, y_n):
                     visited[y_n][x_n] = True
                     parent[y_n][x_n] = [x, y]
-                    if self.goalTest(x_n, y_n):
+                    if x_n == target[0] and y_n == target[1]:
                         self.setPath(parent, x_n, y_n)
                         if len(self.targetPathMap) == self.targetSites:
                             return
@@ -194,7 +191,7 @@ class PathFinder:
         else:
             return False, -1
 
-    def UniformCost(self):
+    def UniformCost(self, target):
 
         open = PriorityQueue(True)
         closed = []
@@ -215,7 +212,7 @@ class PathFinder:
 
             x, y = current[2][0], current[2][1]
 
-            if self.goalTest(x, y):
+            if x == target[0] and y == target[1]:
                 self.setPath(parent, x, y)
                 if len(self.targetPathMap) == self.targetSites:
                     break
@@ -301,6 +298,14 @@ class PathFinder:
                             open.push([f[(x_n, y_n)], globalCounter, (x_n, y_n)])
                             globalCounter += 1
 
+    def BreadthFirstComplete(self):
+        for i in targets:
+            self.BreadthFirst(i)
+
+    def UniformCostComplete(self):
+        for i in targets:
+            self.UniformCost(i)
+
     def AStarComplete(self):
         for i in self.targets:
             self.AStar(i)
@@ -308,7 +313,7 @@ class PathFinder:
 
 if __name__ == '__main__':
 
-    f = open("input.txt", "r")
+    f = open("input3.txt", "r")
 
     lines = f.readlines()
 
@@ -330,9 +335,9 @@ if __name__ == '__main__':
     p = PathFinder(eM, targets, lx, ly, maxElevation)
 
     if algorithm == 'BFS':
-        p.BreadthFirst()
+        p.BreadthFirstComplete()
     elif algorithm == 'UCS':
-        p.UniformCost()
+        p.UniformCostComplete()
     else:
         p.AStarComplete()
 
