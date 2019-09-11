@@ -1,6 +1,7 @@
 from collections import defaultdict
 import math
 import heapq as hq
+import sys
 
 
 # A Basic Priority Queue implementation using heapq
@@ -107,16 +108,24 @@ class PathFinder:
     def cost2D(self, x, y, x_n, y_n):
         return math.floor(math.sqrt(pow(abs(x - x_n), 2) + pow(abs(y - y_n), 2)) * 10)
 
+    def cost3D(self, x, y, x_n, y_n):
+        return self.cost2D(x, y, x_n, y_n) + abs(self.terrainMap[y][x] - self.terrainMap[y_n][x_n])
+
+    # Heuristic till target
+    def heuristic(self, x, y, x_t, y_t):
+        X = math.sqrt(pow(abs(x - x_t), 2) + pow(abs(y - y_t), 2)) * 10
+        Y = abs(self.terrainMap[y_t][x_t] - self.terrainMap[y][x])
+        return math.floor(math.sqrt(pow(X, 2) + pow(Y, 2)))
+
     def setPath(self, parent, x_n, y_n):
 
         path = list()
-        path.append([x_n, y_n])
 
         goalX = x_n
         goalY = y_n
 
-        while x_n != self.lx and y_n != self.ly:
-            path.append(parent[y_n][x_n])
+        while not (x_n == self.lx and y_n == self.ly):
+            path.append([x_n, y_n])
             x_n, y_n = parent[y_n][x_n]
 
         path.append([self.lx, self.ly])
@@ -175,7 +184,7 @@ class PathFinder:
         mini = 10000000
         flag = False
 
-        for i, k, j in l:
+        for i, j in l:
             if i < mini and j[0] == x and j[1] == y:
                 mini = i
                 flag = True
@@ -236,10 +245,65 @@ class PathFinder:
                             parent[y_n][x_n] = [x, y]
                             globalCounter += 1
 
-            closed.append(current)
+            closed.append((current[0], current[2]))
 
-    def AStar(self):
-        pass
+    def AStar(self, target):
+        open = PriorityQueue(True)
+        closed = []
+        parent = [[[0, 0] for i in range(self.w)] for j in range(self.h)]
+
+        globalCounter = 0
+
+        # f = g + h
+        f = {}
+        g = defaultdict(lambda: sys.maxsize)
+
+        g[(self.lx, self.ly)] = 0
+        f[(self.lx, self.ly)] = self.heuristic(self.lx, self.ly, target[0], target[1])
+
+        # Push initial state
+        open.push([0, globalCounter, (self.lx, self.ly)])
+        globalCounter += 1
+
+        while open.size() is not 0:
+            # open.printPQ()
+
+            current = open.top()
+            open.pop()
+
+            closed.append((current[0], current[2]))
+
+            x, y = current[2][0], current[2][1]
+
+            if x == target[0] and y == target[1]:
+                self.setPath(parent, x, y)
+                break
+
+            for i in self.neighbours:
+
+                x_n, y_n = x + i[0], y + i[1]
+                if self.legalMove(x_n, y_n) and self.shouldMove(x, y, x_n, y_n):
+                    openExistence, openCost = open.exist((x_n, y_n))
+                    closedExistence, closedCost = self.findInList(closed, x_n, y_n)
+
+                    pathCost = g[(x, y)] + self.cost3D(x, y, x_n, y_n)
+                    heuristicCost = self.heuristic(x_n, y_n, target[0], target[1])
+                    estimatedCost = pathCost + heuristicCost
+
+                    if closedExistence:
+                        continue
+
+                    if pathCost < g[(x_n, y_n)]:
+                        parent[y_n][x_n] = [x, y]
+                        g[(x_n, y_n)] = pathCost
+                        f[(x_n, y_n)] = estimatedCost
+                        if not openExistence:
+                            open.push([f[(x_n, y_n)], globalCounter, (x_n, y_n)])
+                            globalCounter += 1
+
+    def AStarComplete(self):
+        for i in self.targets:
+            self.AStar(i)
 
 
 if __name__ == '__main__':
@@ -270,6 +334,6 @@ if __name__ == '__main__':
     elif algorithm == 'UCS':
         p.UniformCost()
     else:
-        p.AStar()
+        p.AStarComplete()
 
     p.printTargetPaths()
